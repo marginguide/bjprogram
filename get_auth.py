@@ -1,5 +1,5 @@
 import requests, base64
-
+import flask
 mallid = "muscleguards"
 
 # 카페24 개발자 센터에서 발급받은 Client ID & Secret
