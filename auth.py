@@ -3,6 +3,7 @@ import flask
 import sqlite3
 from datetime import datetime
 import pandas as pd
+from seleniumbase import SB
 mall_id = "muscleguards"
 store_ID = "muscleguards"  # 예: "myshop"
 client_id = "RpSFomfvaaBVrA18fVDLMA"
@@ -10,9 +11,7 @@ client_secret = "kwEwgm66GRKjADaqrbDpgA"
 
 
 def create_url():
-
     mallid = "muscleguards"
-
     # 카페24 개발자 센터에서 발급받은 Client ID & Secret
     client_id = "RpSFomfvaaBVrA18fVDLMA"
     redirect_uri = "https://muscleguards.co.kr/board/free/list.html"
@@ -49,7 +48,7 @@ def generate_token(type, code):
     # 엔드포인트 URL
     url = f"https://{store_ID}.cafe24api.com/api/v2/oauth/token"
     
-    if type == "auth_token":
+    if type == "auth_code":
         payload = {
                 "grant_type" : "authorization_code",
                 "code" : code,
@@ -96,14 +95,16 @@ def get_access():
     access_token = dict_token_value.get('access')
     
     
-    
     # 지금 시간과 비교
-    if str_now < access_token_expire:
+    if str_now > access_token_expire:
         refresh_token = dict_token_value.get('refresh')
         refresh_token_expire  = dict_expires.get('refresh')
         if str_now >= refresh_token_expire:
-            return False
-        
+            url = create_url()
+            from selenium_token_process import token_auto
+            auth_code = token_auto(url)
+            if auth_code:
+                access_token = generate_token('auth_code', auth_code)
         access_token = generate_token('refresh_token', refresh_token)
 
     else:
@@ -112,3 +113,4 @@ def get_access():
         
 
 
+get_access()
