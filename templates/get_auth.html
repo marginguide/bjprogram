@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="page_title">
+    AUTH 코드 받기
+</div>
+<div class="page_content">
+    <button class="medium_color_btn" hx-post="/get_auth" hx-target="#url_div" hx-swap="innerHTML">URL 생성</button>
+    <div class="url_div" id="url_div">
+    </div> 
+    <div class="input_zone">
+        <form>
+            <input type="text" class="code_input">
+            <input type="submit" value="새 리프레시 코드 받기">
+        </form>
+    </div>
+</div>
+<script>
+    // 코드 리프레시
+    function code_refresh(id){
+        const element = document.getElementById(id);
+        var campaignname = element.value
+        var campaigncode = element.name;
+        $.ajax({
+            url: '/api_campaign_name',
+            method: 'POST',
+            data: {'campaigncode' : campaigncode , 'campaignname' : campaignname },
+            success : function(result)
+            {
+                if(result == 'success'){
+                    message = "원클릭 변경목록에 반영했습니다.";
+                    short_showCustomAlert(message)
+                }
+                if(result == 'fail'){
+                    message = "반영 실패";
+                    short_showCustomAlert(message)
+                }
+                
+            }
+        })
+    };
+</script>
+{% endblock%}
