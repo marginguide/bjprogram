@@ -3,19 +3,16 @@ from seleniumbase import SB
 import time
 from pravate_info  import admin_info
 from urllib.parse import urlparse, parse_qs
-
+from config import ID, PASSWORD
 def token_auto(url):
     try:
-        admin_inform_ = admin_info()
-        id = admin_inform_.get('admin_id')
-        pw = admin_inform_.get('admin_pass')
         # 셀레니움
-        with SB(headless2=True, uc=False, uc_cdp=False , uc_subprocess=True, log_cdp=True, remote_debug=True, block_images=False) as self:
+        with SB(headless2=False, uc=True, uc_cdp=False ,block_images=False, undetectable=True) as self:
             self.open(url)
-            xpath = "//input[@id='mall_id']"
-            self.type(xpath, id)
+            xpath = "//input[@id='MALL_ID']"
+            self.type(xpath, ID)
             xpath = "//input[@id='userpasswd']"
-            self.type(xpath, pw)
+            self.type(xpath, PASSWORD)
             xpath = "//button[text()='로그인']"
             self.slow_click(xpath)
             
@@ -31,5 +28,4 @@ def token_auto(url):
             return auth_code
     except:
         return False
-        
         

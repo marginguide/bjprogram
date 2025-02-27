@@ -4,23 +4,20 @@ import sqlite3
 from datetime import datetime
 import pandas as pd
 from seleniumbase import SB
-mall_id = "muscleguards"
-store_ID = "muscleguards"  # 예: "myshop"
-client_id = "RpSFomfvaaBVrA18fVDLMA"
-client_secret = "kwEwgm66GRKjADaqrbDpgA"
+from config import MALL_ID, CLIENT_ID, CLIENT_SECRET, STORE_ID
 
 
 def create_url():
-    mallid = "muscleguards"
     # 카페24 개발자 센터에서 발급받은 Client ID & Secret
-    client_id = "RpSFomfvaaBVrA18fVDLMA"
     redirect_uri = "https://muscleguards.co.kr/board/free/list.html"
     state = "muscle"
     scope = "mall.write_order, mall.read_order,mall.read_shipping, mall.write_shipping"
     # OAuth 2.0 토큰 발급 URL
-    url = f"https://{mallid}.cafe24api.com/api/v2/oauth/authorize?response_type=code&client_id={client_id}&state={state}&redirect_uri={redirect_uri}&scope={scope}"
+    url = f"https://{MALL_ID}.cafe24api.com/api/v2/oauth/authorize?response_type=code&CLIENT_ID={CLIENT_ID}&state={state}&redirect_uri={redirect_uri}&scope={scope}"
     print(url)
     return url
+
+
 
 def save_token(tokenType,  tokenValue, expiresAt):
     conn = sqlite3.connect('data/db.db')
@@ -40,13 +37,13 @@ def save_token(tokenType,  tokenValue, expiresAt):
 def generate_token(type, code):
     redirect_uri = "https://muscleguards.cafe24api.com/artfinger/magazine.html"
     # 요청 헤더
-    auth_header = base64.b64encode(f"{client_id}:{client_secret}".encode()).decode()
+    auth_header = base64.b64encode(f"{CLIENT_ID}:{CLIENT_SECRET}".encode()).decode()
     headers = {
         "Authorization": f"Basic {auth_header}",
         "Content-Type": "application/x-www-form-urlencoded"
     }
     # 엔드포인트 URL
-    url = f"https://{store_ID}.cafe24api.com/api/v2/oauth/token"
+    url = f"https://{STORE_ID}.cafe24api.com/api/v2/oauth/token"
     
     if type == "auth_code":
         payload = {
@@ -88,6 +85,12 @@ def get_access():
     conn = sqlite3.connect('data/db.db')
     query = "SELECT tokenType, expiresAt,  tokenValue FROM token"
     df = pd.read_sql_query(query, conn)
+    if len(df) == 0:
+        url = create_url()
+        from selenium_token_process import token_auto
+        auth_code = token_auto(url)
+        if auth_code:
+            access_token = generate_token('auth_code', auth_code)
     dict_expires = df.set_index("tokenType")["expiresAt"].to_dict()
     dict_token_value = df.set_index("tokenType")["tokenValue"].to_dict()
     conn.close()
@@ -110,7 +113,5 @@ def get_access():
     else:
         pass
         
-        
+    return access_token
 
-
-get_access()
