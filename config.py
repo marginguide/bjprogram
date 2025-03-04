@@ -13,4 +13,7 @@ CLIENT_ID = os.getenv("CLIENT_ID")
 CLIENT_SECRET = os.getenv("CLIENT_SECRET")
 ID = os.getenv("ID")
 PASSWORD = os.getenv("PASSWORD")
+togle_ID = os.getenv("togle_ID")
+togle_PASS = os.getenv("togle_PASS")
+
 pass
