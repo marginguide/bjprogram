@@ -5,21 +5,8 @@ from pravate_info  import admin_info
 from urllib.parse import urlparse, parse_qs
 from config import ID, PASSWORD, togle_ID, togle_PASS
 from bs4 import BeautifulSoup
-
-def get_file_path(target_file, timeout):
-    start_time = time.time()  # 시작 시간 기록
-    basedir = os.path.abspath(os.path.dirname(__file__))
-    folder_path = os.path.join(basedir, "downloaded_files")
-    while time.time() - start_time < timeout:  # 30초 동안 반복
-        for root, dirs, files in os.walk(folder_path):
-            if target_file in files:
-                return os.path.join(root, target_file)  # 파일 경로 반환
-        
-        time.sleep(1)  # CPU 과부하 방지를 위해 1초 대기
-
-    return False  # 
-
-
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.action_chains import ActionChains
 
 def wait_for_csv(keyword="muscleguards", timeout= 30):
     basedir = os.path.abspath(os.path.dirname(__file__))
@@ -85,26 +72,22 @@ def read_order():
             
             xpath = "//a[@id='eExcelDownloadBtn']"
             self.click(xpath)
-
-
-
+            
             self.switch_to_window(1)
-
-                    
-
             xpath = "//select[@id='aManagesList']"
             self.select_option_by_text(xpath, '자동화용데이터')
             # 엑셀 파일요청 클릭
             
             xpath = "//span[text() = '엑셀파일요청']/parent::a"
-            self.click(xpath)
+            try:
+                self.click(xpath, timeout=2)
+            except:
+                pass
+            pass
             
         
     def excel_download():
-
-
-
-        with SB(headless2=False, uc=True, uc_cdp=False ,block_images=False, undetectable=True, ) as self:
+        with SB(headless2=False, uc=True, uc_cdp=False ,block_images=False, undetectable=True,) as self:
             url = "https://eclogin.cafe24.com/Shop/"
             self.open(url)
             xpath = "//input[@id='mall_id']"
@@ -147,6 +130,7 @@ def read_order():
             xpath = "//span[text()= '로그인']//ancestor::button"
             self.click(xpath)
             time.sleep(3)
+
             url = "https://togle.io/app/orders/process/notPrinted"
             self.open(url)
             
@@ -176,74 +160,99 @@ def read_order():
             self.assert_element(xpath, timeout=10)
             self.click(xpath)
             
+            
+            
+            
+            
             xpath = "//span[text()='일괄 송장출력']//ancestor::button"
             self.assert_element(xpath, timeout=10)
+            time.sleep(5)
             self.click(xpath)
             
             xpath = "//span[text()='확인']//ancestor::button"
             self.click(xpath)
             pass
+            time.sleep(10)
+            url = "https://togle.io/app/orders/process/notPrinted"
+            self.open(url)
+            pass
             
-            # 프린트 아이콘 버튼
-            xpath = "//button[@id='print-confirm']"
+            # 결과 테이블의 rows
+            for i in range(10):
+                time.sleep(1)
+                xpath = "//div[@class='ag-center-cols-container']/div"
+                line_cnt = len(self.find_elements(xpath))
+                if line_cnt > 0: break
             
-            self.click(xpath)
             
             
-            # 송장번호 엑셀 받기
+            soup = BeautifulSoup(self.get_page_source(), "html.parser")
+            items = soup.select("div.ag-center-cols-container > div")
             
-            xpath = "//div[contains(text(),'엑셀 다운로드')]//ancestor::button"
-            self.click(xpath)
+            print(items)
+            tracking_list = []
+            prev_order_no = ''
+            for index, item in enumerate(items, start=0):
+                
+                order_no =item.find("div", attrs={"col-id": "col6"}).get_text(strip=True) 
+                if prev_order_no == order_no:continue
+                prev_order_no = order_no
+                tracking_no = item.find("div", attrs={"col-id": "col9"}).select_one("span > div > div").get_text(strip=True)
+                
+                Num = {}
+                Num['order_no'] = order_no
+                Num['tracking_no'] = tracking_no
+                tracking_list.append(Num)
+                
             
-            xpath = "//span[text()='발송정보 다운로드']//ancestor::button"
-            self.click(xpath)
             
-            xpath = "//div[@class='q-card']//div[contains(text(),'샐릿34 (ncp_1oegid_01)')]//ancestor::div[contains(@class,'row ')]//div[@role='checkbox']//input"
-            self.click(xpath)
-            xpath = "//span[text()='확인']//ancestor::button"
-            self.click(xpath)
-            pyautogui.click(x=500, y=600)
+            print(tracking_list)
+           
+            url = "https://eclogin.cafe24.com/Shop/"
+            self.open(url)
+            xpath = "//input[@id='mall_id']"
+            self.assert_element(xpath, timeout=10)
+            self.type(xpath, ID)
             
-            # 결과 테이블 DIV
-            xpath = "//div[@class='ag-center-cols-container']/div"
-            return 'auth_code'
-    
+            xpath = "//input[@id='userpasswd']"
+            self.type(xpath, PASSWORD)
+            xpath = "//button[text()='로그인']"
+            try: self.slow_click(xpath)
+            except:pass
+            
+            xpath = "//a[@id='iptBtnEm']"
+            try:
+                self.slow_click(xpath)
+                time.sleep(1)
+            except:
+                pass
+            
+            url = "https://muscleguards.cafe24.com/admin/php/shop1/s_new/shipped_begin_list.php"
+            self.open(url)
+            time.sleep(1)
+                    
+            for order in tracking_list:
+                order_no = order['order_no']
+                tracking_no = order['tracking_no']
+                xpath = f"//tbody[@order_id='{order_no}']//div[@class='gSingle']/input"
+                if not self.is_element_present(xpath): continue
+                self.type(xpath, tracking_no)
+                xpath = f"//input[@data-row-key='{order_no}']"
+                self.slow_click(xpath)
+                
+           
 
-    # try:excel_down_click()
-    # except:pass
-    try:excel_download()
+            xpath = "//div[contains(@class,'typeHeader')]//a[@id='eShipStartBtn']"
+            try:
+                self.slow_click(xpath)
+            except:
+                pass
+            
+            self.wait_for_and_accept_alert(timeout=10) 
+            
+    try:excel_down_click()
     except:pass
-    # self.
-
-    tab_list = self.driver.window_handles()
-    self.execute_script("window.alert = function() {}; window.confirm = function() { return true; };")
-    self.open_new_tab()
-
-    self.refresh_page()
-    # self.switch_to_alert()
-
-    # self.accept_alert()
-    pass
-    # self.click(xpath)
-    
-
-    # # 다운로드 버튼 클릭
-    # xpath = "//a[@id='eShipBeginExcelDownload']"
-    # self.click(xpath)
-    # self.switch_to_alert()
-    # self.accept_alert()
-    
-    
-    # # 파일 패스 찾기
-    # response = requests.get("https://api64.ipify.org?format=json")
-    # external_ip = response.json()["ip"]
-    # target_file = f"{external_ip}_orders.csv"
-    # excel_file = get_file_path(target_file, 20)
-    # print(excel_file)
-    
-    # 주문을 읽어서 DB로
-    
-    
+    excel_download()
     
 
     
