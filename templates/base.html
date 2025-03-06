@@ -19,35 +19,14 @@
     </head>
     <body>
         <div class="container">
-            <div class="left_menusection">
-                <div class="left_button_div">
-                    <button class="left_btn" type="button" hx-get="/dailyscrawl_loading" hx-swap="innerHTML" hx-target="body">
-                        <span>주문데이터 수집하기</span>
-                    </button>
-                    <button  class="left_btn"  hx-get="/today_loading" hx-swap="innerHTML" hx-target="body">
-                        <i class="fa-solid fa-rotate"></i><span>실시간 실적 수집</span></button>
-                    </button>
-                    
-                    <button id="rankingButton" class="left_btn" onclick="startLoading()">
-                        <i class="fa-solid fa-medal"></i>
-                        <span id="buttonText">키워드 랭킹 수집</span>
-                    </button>
-                    <div id="loadingSpinner"  class="left_btn" style="display: none;">
-                        <i class="fas fa-spinner fa-spin"></i> 로딩 중...
-                    </div>
-                    <button  class="left_btn"  hx-get="/get_auth" hx-swap="innerHTML" hx-target=".right_content">
-                        <i class="fa-solid fa-rotate"></i><span>새 AUTH 코드 받기</span></button>
-                    </button>
-                </div>
-                <div class="left_menu_div">
-                    <a href="/dashboard"><button class="parent_menu_btn"><i class="fa-solid fa-gauge"></i><span>새 AUTH 코드 받기</span></button></a>
-                    <a href="/today_render"><button class="parent_menu_btn"><i class="fa-solid fa-clock"></i><span>실시간 실적</span></button></a>
-                    <a href="/term"><button class="parent_menu_btn"><i class="fa-solid fa-calendar-week"></i><span>기간 보고서</span></button></a>
-                    <a href="/ranking"><button class="parent_menu_btn"><i class="fa-solid fa-medal"></i><span>키워드 랭킹(베타)</span></button></a>
-                    <a href="/product_report_main"><button class="parent_menu_btn"><i class="fa-solid fa-gifts"></i><span>상품 보고서</span></button></a>
-                </div>
+            <div class="header">
+                <button class="left_btn" type="button" hx-get="/ordering" hx-swap="innerHTML" hx-target="#body_div">
+                    <span>주문 처리하기</span>
+                </button>
+                <input type="text" >
+                <button  class="left_btn">예약시간 변경하기</button>
             </div>
-            <div class="right_content ">
+            <div id="body_div" style="width:100%">
                 {% block content %}
 
                 {% endblock %}

@@ -3,13 +3,21 @@ body{
     color:#000;
 }
 .container{
-    background-color: #444;
+    background-color: #ffffff;
     position:fixed;
     left:0;
     top:0;
     display: flex;
     flex-wrap: wrap;
-    height:100vh;
+    /* height:100vh; */
+    width: 100%;
+}
+
+.header{
+    width:100%;
+    padding:20px;
+    height:80px;
+    background: #181818;
 }
 .left_menusection{
     width:200px;
@@ -120,12 +128,16 @@ body{
     
 }
 .left_btn{
-    width:100%;
+    width:300px;
     margin:20px 0px;
     border:none;
-    background:#664332;
+    background: #55a941;
+    color:white;
+    font-weight:600;
+    font-size:20px;
     padding:7px;
     border-radius:20px;
+    margin-right:50px;
 }
 .left_menu_div{
     background:#fff;
@@ -139,4 +151,40 @@ body{
     margin:20px 0;
     padding:10px;
     
+}
+
+input {
+    width:300px;
+    font-size:20px;
+    padding:10px;
+    margin-right:20px;
+    text-align:center;
+    font-weight:600;
+    color: #3b7f2b;
+}
+.result{
+    width:100%;
+    padding:50px;
+}
+.is_success{
+    text-align:center;
+    font-size:100px;
+    font-weight:900;
+    
+}
+.resut_table{
+    padding:10px;
+    text-align:center;
+}
+.result_box{
+    border-top: 1px dotted;
+    border-bottom:1px dotted;
+}
+.result_tile{
+    font-size:18px;
+    font-weight: 600;
+}
+.result_value{
+        font-size:50px;
+    font-weight: 40;
 }
