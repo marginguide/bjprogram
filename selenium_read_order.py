@@ -4,6 +4,7 @@ import time, os, glob
 from config import ID, PASSWORD, togle_ID, togle_PASS
 from bs4 import BeautifulSoup
 import pyautogui
+import random
 def wait_for_csv(keyword="muscleguards", timeout= 30):
     basedir = os.path.abspath(os.path.dirname(__file__))
     folder = os.path.join(basedir, "downloaded_files")
@@ -21,10 +22,34 @@ def wait_for_csv(keyword="muscleguards", timeout= 30):
     print("⏳ 30초 동안 파일을 찾지 못했습니다.")
     return None  # 시간 초과 시 None 반환
 
+def pyautogui_image_click(btn_name):
+    
+    
+    cnt = 0
+    while True:
+        try:
+            
+            if btn_name == "confirm":
+                try:
+                    btn_path = 'static/pyauto_img/confirm_button_1.png'
+                    btn_img = pyautogui.locateCenterOnScreen(btn_path)
+                except:
+                    btn_path = 'static/pyauto_img/confirm_button_2.png'
+                    btn_img = pyautogui.locateCenterOnScreen(btn_path)
+            else:
+                btn_path = 'static/pyauto_img/' + btn_name + '.png'
+                btn_img = pyautogui.locateCenterOnScreen(btn_path)
+            pyautogui.click(btn_img)
+            return True
+        except:
+            cnt += 1
+            time.sleep(0.5)
+        if cnt > 60: return False
+
 
 def order_process():
 
-    order_cnt = 0
+    
     # return 105
     basedir = os.path.abspath(os.path.dirname(__file__))
     folder_path = os.path.join(basedir, "downloaded_files")
@@ -57,9 +82,14 @@ def order_process():
         xpath = "//button[text()='로그인']"
         self.slow_click(xpath)
         
+        
+    
         xpath = "//a[@id='iptBtnEm']"
-        self.slow_click(xpath)
         time.sleep(1)
+        if self.is_element_visible(xpath):
+            self.slow_click(xpath)
+            time.sleep(1)
+
         
         
         
@@ -73,13 +103,10 @@ def order_process():
         xpath = "//select[@id='aManagesList']"
         self.select_option_by_text(xpath, '자동화용데이터')
         # 엑셀 파일요청 클릭
-        
-        time.sleep(1)
-        # 오코 클릭
-        pyautogui.click(665, 387)
-        time.sleep(1)
-        pyautogui.click(840, 224)
-        time.sleep(1)
+
+        if not pyautogui_image_click('generate_btn'):return False
+        if not pyautogui_image_click('confirm'):return False
+
         
         # 
         xpath = "//tbody[@class='center']/tr[1]//a"
@@ -152,9 +179,29 @@ def order_process():
             xpath = "//span[text()='확인']//ancestor::button"
             self.slow_click(xpath)
             pass
-            time.sleep(20)
-            url = "https://togle.io/app/orders/process/notPrinted"
+           
+            
+            if not pyautogui_image_click('blank_screen_click'):return False
+            pyautogui.hotkey('ctrl', 'p')
+            if not pyautogui_image_click('select_printer'):return False
+            if not pyautogui_image_click('more_view'):return False
+            if not pyautogui_image_click('x_printer'):return False
+            if not pyautogui_image_click('do_print'):return False
+            
+            self.open_new_tab()
+            url = "https://www.togle.io/app/orders/process/notPrinted"
             self.open(url)
+            try:
+                xpath = "//input[@placeholder ='아이디(Email)']"
+                self.assert_element(xpath, timeout=10)
+                self.type(xpath, togle_ID)
+                xpath = "//input[@placeholder ='비밀번호']"
+                self.type(xpath, togle_PASS)
+                xpath = "//span[text()= '로그인']//ancestor::button"
+                self.slow_click(xpath)
+            except:
+                pass
+            time.sleep(3)
             pass
             
             # 결과 테이블의 rows
@@ -175,17 +222,16 @@ def order_process():
             prev_order_no = ''
             for index, item in enumerate(items, start=0):
                 
-                order_no =item.find("div", attrs={"col-id": "col6"}).get_text(strip=True) 
+                order_no =item.find("div", attrs={"aria-colindex": "6"}).get_text(strip=True) 
                 if prev_order_no == order_no:continue
                 prev_order_no = order_no
                 
                 if "파일업로드" in item.get_text():
                     try:
-                        tracking_no = item.find("div", attrs={"col-id": "col9"}).select_one("span > div > div").get_text(strip=True)
+                        tracking_no = item.find("div", attrs={"aria-colindex": "9"}).select_one("span > div > div").get_text(strip=True)
                         Num = {}
                         Num['order_no'] = order_no
                         Num['tracking_no'] = tracking_no
-                        order_cnt += 1
                     # 송장번호가 없을 경우
                     except:
                         return False
@@ -199,10 +245,16 @@ def order_process():
                 return "오류발생했어요. 니가 알아서 해봐요."
         
         print(tracking_list)
-        url = "https://muscleguards.cafe24.com/admin/php/shop1/s_new/shipped_begin_list.php"
-        self.open(url)
-        time.sleep(1)
-                
+        # url = "https://muscleguards.cafe24.com/admin/php/shop1/s_new/shipped_begin_list.php"
+        # self.open(url)
+        # time.sleep(1)
+        self.switch_to_window(-1)
+        
+        for i in range(30):
+            self.switch_to_tab(i)
+            url = self.get_current_url()
+            if url == "https://muscleguards.cafe24.com/admin/php/shop1/s_new/shipped_begin_list.php":break
+            
         for order in tracking_list:
             order_no = order['order_no']
             tracking_no = order['tracking_no']
@@ -212,11 +264,17 @@ def order_process():
             xpath = f"//input[@data-row-key='{order_no}']"
             self.slow_click(xpath)
         self.scroll_to_top()
-        time.sleep(1)
-        pyautogui.click(450,744)
-        time.sleep(1)
-        pyautogui.click(763, 245)
+        if not pyautogui_image_click('onshipment_generate_btn'):return False
+        if not pyautogui_image_click('confirm'):return False
+        time.sleep(10)
+
+        
+        # time.sleep(1)
+        # pyautogui.click(450,744)
+        # time.sleep(1)
+        # pyautogui.click(763, 245)
         pass
     
-        return order_cnt
+        return len(tracking_list)
     
+order_process()
