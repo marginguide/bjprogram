@@ -29,16 +29,11 @@ def pyautogui_image_click(btn_name):
     while True:
         try:
             
-            if btn_name == "confirm":
-                try:
-                    btn_path = 'static/pyauto_img/confirm_button_1.png'
-                    btn_img = pyautogui.locateCenterOnScreen(btn_path)
-                except:
-                    btn_path = 'static/pyauto_img/confirm_button_2.png'
-                    btn_img = pyautogui.locateCenterOnScreen(btn_path)
-            else:
-                btn_path = 'static/pyauto_img/' + btn_name + '.png'
-                btn_img = pyautogui.locateCenterOnScreen(btn_path)
+
+            btn_path = 'static/pyauto_img/' + btn_name + '.png'
+            time.sleep(0.3)
+            btn_img = pyautogui.locateCenterOnScreen(btn_path, confidence=0.8)
+            time.sleep(0.3)
             pyautogui.click(btn_img)
             return True
         except:
@@ -73,6 +68,7 @@ def order_process():
     with SB(headless2=False, uc=True, uc_cdp=False ,block_images=False, undetectable=True, ) as self:
         url = "https://eclogin.cafe24.com/Shop/"
         self.open(url)
+        default_window = self.driver.current_window_handle
         xpath = "//input[@id='mall_id']"
         self.assert_element(xpath, timeout=10)
         self.type(xpath, ID)
@@ -105,7 +101,9 @@ def order_process():
         # 엑셀 파일요청 클릭
 
         if not pyautogui_image_click('generate_btn'):return False
-        if not pyautogui_image_click('confirm'):return False
+        time.sleep(1)
+        self.accept_alert()
+        
 
         
         # 
@@ -124,9 +122,8 @@ def order_process():
             excel = wait_for_csv(keyword="togle", timeout= 30)
         else:
             return "주문이 없습니다."
-        self.switch_to_window(0)
+        # self.switch_to_window(default_window)
         self.open_new_tab()
-        
         url = "https://togle.io/app/login"
         self.open(url)
         
@@ -182,14 +179,38 @@ def order_process():
            
             
             if not pyautogui_image_click('blank_screen_click'):return False
-            pyautogui.hotkey('ctrl', 'p')
+                        # 클로즈버튼 클릭\
+            from get_position import update_position
+            position = update_position()
+            if len(position) == 0:
+                time.sleep(10)
+                click_position = pyautogui.position()
+                position = update_position(click_position)
+            time.sleep(1)
+            position_x = int(position['position_x'][0])
+            time.sleep(1)
+            position_y = int(position['position_y'][0])
+            time.sleep(2)
+            pyautogui.click(position_x , position_y)
+            time.sleep(2)
             if not pyautogui_image_click('select_printer'):return False
+            time.sleep(1)
             if not pyautogui_image_click('more_view'):return False
+            time.sleep(1)
             if not pyautogui_image_click('x_printer'):return False
+            time.sleep(1)
             if not pyautogui_image_click('do_print'):return False
+            time.sleep(2)
             
-            self.open_new_tab()
-            url = "https://www.togle.io/app/orders/process/notPrinted"
+
+
+            
+            
+            
+            
+            
+            
+            url = "https://www.togle.io/app/orders/process/printed"
             self.open(url)
             try:
                 xpath = "//input[@placeholder ='아이디(Email)']"
@@ -265,7 +286,8 @@ def order_process():
             self.slow_click(xpath)
         self.scroll_to_top()
         if not pyautogui_image_click('onshipment_generate_btn'):return False
-        if not pyautogui_image_click('confirm'):return False
+        time.sleep(1)
+        self.accept_alert()
         time.sleep(10)
 
         
